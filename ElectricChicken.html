@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🥚 電子雞 復刻版 V4</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+:root{
+  --lcd-bg:#8bac0f;--lcd-dk:#0f380f;--lcd-md:#306230;--lcd-lt:#9bbc0f;
+  --shell:#f5c518;--shell-d:#c9a010;--shell-s:#8a6d00;
+  --btn-r:#e74c3c;--btn-b:#2980b9;--btn-g:#27ae60;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:radial-gradient(ellipse at center,#1a1a2e,#16213e 50%,#0f3460);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;user-select:none;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 15% 20%,#fff,transparent),radial-gradient(1px 1px at 80% 10%,#fff,transparent),
+    radial-gradient(1px 1px at 50% 70%,#fff,transparent),radial-gradient(1px 1px at 10% 80%,#fff,transparent),
+    radial-gradient(1px 1px at 90% 55%,#fff,transparent),radial-gradient(1px 1px at 35% 12%,#fff,transparent),
+    radial-gradient(1px 1px at 65% 40%,#fff,transparent),radial-gradient(1px 1px at 72% 85%,#fff,transparent),
+    radial-gradient(1px 1px at 28% 62%,#fff,transparent),radial-gradient(1px 1px at 45% 30%,#fff,transparent);
+  animation:twinkle 4s infinite alternate;
+}
+@keyframes twinkle{from{opacity:.5}to{opacity:1}}
+.title{color:var(--shell);font-size:13px;letter-spacing:3px;margin-bottom:8px;
+  text-shadow:0 0 10px var(--shell),0 2px 0 var(--shell-s);animation:glow 2s infinite alternate;}
+@keyframes glow{to{text-shadow:0 0 20px var(--shell),0 0 40px #ffdd57,0 2px 0 var(--shell-s);}}
+/* ── 難度列 ── */
+.difficulty-row{display:flex;gap:6px;margin-bottom:7px;align-items:center;}
+.diff-btn{font-family:'Press Start 2P',monospace;font-size:6px;padding:4px 8px;border:2px solid var(--shell-s);
+  border-radius:10px;background:rgba(0,0,0,0.4);color:rgba(255,255,255,0.5);cursor:pointer;transition:all .2s;}
+.diff-btn.active{background:var(--shell);color:#000;border-color:var(--shell-s);}
+.diff-label{font-size:7px;color:rgba(255,255,255,0.4);}
+/* ── 季節列 ── */
+.season-row{display:flex;gap:5px;margin-bottom:8px;align-items:center;}
+.season-tag{font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 8px;border-radius:10px;
+  border:2px solid transparent;transition:all .4s;color:rgba(255,255,255,0.35);background:rgba(0,0,0,0.3);}
+.season-tag.active-season{color:#fff;font-size:8px;}
+.season-spring.active-season{background:#388e3c;border-color:#1b5e20;}
+.season-summer.active-season{background:#f57c00;border-color:#bf360c;}
+.season-autumn.active-season{background:#6d4c41;border-color:#3e2723;}
+.season-winter.active-season{background:#1565c0;border-color:#0d47a1;}
+/* ── 裝置 ── */
+.device{position:relative;width:280px;
+  background:linear-gradient(160deg,var(--shell) 0%,#ffdd57 30%,var(--shell-d) 70%,var(--shell-s) 100%);
+  border-radius:50% 50% 45% 45%/40% 40% 50% 50%;padding:22px 20px 38px;
+  box-shadow:0 0 0 4px var(--shell-s),0 0 0 7px #5a4500,8px 15px 35px rgba(0,0,0,.6),
+    inset 0 3px 8px rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.2);border:3px solid var(--shell-s);}
+.device::before{content:'★';position:absolute;top:16px;left:24px;font-size:13px;color:var(--shell-s);opacity:.6;}
+.device::after{content:'♥';position:absolute;top:16px;right:24px;font-size:13px;color:var(--shell-s);opacity:.6;}
+@keyframes deviceShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+.device.shake{animation:deviceShake .4s ease;}
+/* ── 螢幕框 ── */
+.screen-frame{background:linear-gradient(135deg,#2c2c2c,#1a1a1a);border-radius:14px;padding:9px;margin:8px 5px 13px;
+  box-shadow:inset 0 0 15px rgba(0,0,0,.8),0 0 0 2px #555,0 0 20px rgba(139,172,15,.3);}
+.screen{background:var(--lcd-bg);border-radius:9px;width:210px;height:180px;margin:0 auto;
+  position:relative;overflow:hidden;box-shadow:inset 0 0 10px rgba(0,0,0,.3);}
+.screen::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:9px;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);}
+/* ── 狀態列 ── */
+.status-bar{display:flex;justify-content:space-between;padding:4px 7px 2px;border-bottom:2px solid var(--lcd-md);}
+.s-icon{font-size:7px;color:var(--lcd-dk);font-family:'Press Start 2P',monospace;display:flex;align-items:center;gap:2px;}
+/* ── 天氣列 ── */
+.weather-bar{display:flex;align-items:center;justify-content:center;
+  padding:2px 5px;border-bottom:1px solid var(--lcd-md);min-height:16px;}
+.weather-txt{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--lcd-md);}
+/* ── 寵物區 ── */
+.pet-area{height:92px;display:flex;align-items:center;justify-content:center;position:relative;}
+#petCanvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+/* ── 訊息列 ── */
+.msg-bar{border-top:2px solid var(--lcd-md);padding:3px 5px;min-height:22px;
+  display:flex;align-items:center;justify-content:center;}
+.msg-txt{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;line-height:1.5;}
+/* ── 狀態條 ── */
+.stats-panel{display:flex;flex-direction:column;gap:2px;padding:2px 7px 2px;border-top:2px solid var(--lcd-md);}
+.stat-row{display:flex;align-items:center;gap:4px;}
+.stat-lbl{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--lcd-dk);width:48px;}
+.stat-bar{flex:1;height:7px;background:var(--lcd-lt);border:1px solid var(--lcd-md);overflow:hidden;}
+.stat-fill{height:100%;background:var(--lcd-dk);transition:width .3s;}
+.stat-fill.warn{background:#555;}
+.stat-val{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--lcd-dk);width:22px;text-align:right;}
+/* ── 覆蓋層通用 ── */
+.overlay{position:absolute;inset:0;background:var(--lcd-bg);border-radius:9px;
+  display:none;flex-direction:column;padding:5px;z-index:10;}
+.overlay.active{display:flex;}
+/* ── 選單 ── */
+.menu-title{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;
+  border-bottom:2px solid var(--lcd-md);padding-bottom:3px;margin-bottom:3px;}
+.menu-items-wrap{overflow:hidden;flex:1;}
+.menu-item{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);
+  padding:4px 5px;display:flex;align-items:center;gap:4px;cursor:pointer;}
+.menu-item.sel{background:var(--lcd-dk);color:var(--lcd-bg);border-radius:3px;}
+.menu-cur{font-size:8px;width:10px;}
+/* ── 暫停畫面 ── */
+.pause-screen{position:absolute;inset:0;background:rgba(15,56,15,.85);border-radius:9px;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;gap:8px;}
+.pause-screen.active{display:flex;}
+.pause-txt{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--lcd-lt);text-align:center;line-height:2;}
+/* ── 死亡畫面 ── */
+.death-screen{position:absolute;inset:0;background:var(--lcd-bg);border-radius:9px;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;gap:5px;}
+.death-screen.active{display:flex;}
+.death-txt{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;line-height:2;}
+/* ── 孵蛋畫面 ── */
+.hatch-screen{position:absolute;inset:0;background:var(--lcd-bg);border-radius:9px;
+  display:none;align-items:center;justify-content:center;z-index:15;}
+.hatch-screen.active{display:flex;}
+/* ── 猜拳遊戲畫面 ── */
+.game-screen{position:absolute;inset:0;background:var(--lcd-bg);border-radius:9px;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:25;gap:4px;}
+.game-screen.active{display:flex;}
+.game-title{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;
+  border-bottom:2px solid var(--lcd-md);width:100%;padding-bottom:3px;margin-bottom:2px;}
+.game-choices{display:flex;gap:6px;justify-content:center;margin:4px 0;}
+.game-choice-btn{font-size:20px;width:44px;height:44px;border-radius:10px;border:2px solid var(--lcd-md);
+  background:var(--lcd-lt);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,background .1s;}
+.game-choice-btn:hover,.game-choice-btn:active{background:var(--lcd-md);transform:scale(.92);}
+.game-result{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;line-height:1.8;min-height:30px;}
+.game-close-btn{font-family:'Press Start 2P',monospace;font-size:6px;padding:4px 10px;
+  background:var(--lcd-dk);color:var(--lcd-bg);border:none;border-radius:5px;cursor:pointer;margin-top:3px;}
+/* ── 出去玩畫面 ── */
+.outdoor-screen{position:absolute;inset:0;background:var(--lcd-bg);border-radius:9px;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:25;gap:3px;padding:5px;}
+.outdoor-screen.active{display:flex;}
+.outdoor-title{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--lcd-dk);text-align:center;
+  border-bottom:2px solid var(--lcd-md);width:100%;padding-bottom:3px;margin-bottom:3px;}
+.outdoor-result{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--lcd-dk);
+  text-align:center;line-height:1.8;min-height:28px;white-space:pre-line;}
+.outdoor-close-btn{font-family:'Press Start 2P',monospace;font-size:6px;padding:4px 10px;
+  background:var(--lcd-dk);color:var(--lcd-bg);border:none;border-radius:5px;cursor:pointer;margin-top:2px;}
+/* ── 按鈕 ── */
+.buttons-row{display:flex;justify-content:space-around;align-items:center;padding:0 14px;margin-top:4px;}
+.btn-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.btn-lbl{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--shell-s);letter-spacing:1px;}
+.btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;position:relative;
+  transition:transform .08s,box-shadow .08s;outline:none;}
+.btn::after{content:'';position:absolute;top:4px;left:6px;width:12px;height:6px;
+  background:rgba(255,255,255,.3);border-radius:50%;transform:rotate(-30deg);}
+.btn:active{transform:scale(.88);}
+.btn-A{background:radial-gradient(circle at 35% 35%,#ff6b6b,var(--btn-r));box-shadow:0 5px 0 #c0392b,0 6px 10px rgba(0,0,0,.4);}
+.btn-A:active{box-shadow:0 2px 0 #c0392b,0 3px 6px rgba(0,0,0,.3);}
+.btn-B{background:radial-gradient(circle at 35% 35%,#5dade2,var(--btn-b));box-shadow:0 5px 0 #1a6fa0,0 6px 10px rgba(0,0,0,.4);}
+.btn-B:active{box-shadow:0 2px 0 #1a6fa0,0 3px 6px rgba(0,0,0,.3);}
+.btn-C{background:radial-gradient(circle at 35% 35%,#58d68d,var(--btn-g));box-shadow:0 5px 0 #1e8449,0 6px 10px rgba(0,0,0,.4);}
+.btn-C:active{box-shadow:0 2px 0 #1e8449,0 3px 6px rgba(0,0,0,.3);}
+/* ── 暫停按鈕 ── */
+.pause-btn{position:absolute;top:-32px;right:0;font-family:'Press Start 2P',monospace;font-size:7px;
+  padding:5px 10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);
+  border:2px solid rgba(255,255,255,.3);border-radius:12px;cursor:pointer;transition:all .2s;}
+.pause-btn:hover,.pause-btn.paused{background:var(--shell);color:#000;border-color:var(--shell-s);}
+.pause-btn.paused{animation:glow .8s infinite alternate;}
+/* ── 儲存提示 ── */
+.save-indicator{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);
+  font-family:'Press Start 2P',monospace;font-size:6px;color:rgba(255,255,255,0);
+  white-space:nowrap;transition:color .3s;}
+.save-indicator.show{color:rgba(255,220,80,.9);}
+/* ── 通知 ── */
+.notif{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-60px);
+  background:var(--shell);color:#1a1a1a;font-family:'Press Start 2P',monospace;font-size:8px;
+  padding:7px 14px;border-radius:18px;border:3px solid var(--shell-s);
+  box-shadow:0 4px 15px rgba(0,0,0,.4);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:100;white-space:nowrap;max-width:90vw;}
+.notif.show{transform:translateX(-50%) translateY(0);}
+.version{color:rgba(255,255,255,.25);font-size:6px;margin-top:8px;letter-spacing:2px;}
+@media(max-height:730px){
+  .device{transform:scale(.82);}
+  .title{font-size:10px;margin-bottom:5px;}
+  .difficulty-row,.season-row{margin-bottom:4px;}
+}
+</style>
+</head>
+<body>
+
+<div class="title">🥚 電子雞 復刻版 V4</div>
+
+<!-- 難度選擇 -->
+<div class="difficulty-row">
+  <span class="diff-label">難度:</span>
+  <button class="diff-btn" id="diff-easy" onclick="setDifficulty('easy')">簡單</button>
+  <button class="diff-btn active" id="diff-normal" onclick="setDifficulty('normal')">普通</button>
+  <button class="diff-btn" id="diff-hard" onclick="setDifficulty('hard')">困難</button>
+</div>
+
+<!-- 季節指示列 -->
+<div class="season-row">
+  <div class="season-tag season-spring" id="stag-spring">🌸春</div>
+  <div class="season-tag season-summer" id="stag-summer">☀️夏</div>
+  <div class="season-tag season-autumn" id="stag-autumn">🍂秋</div>
+  <div class="season-tag season-winter" id="stag-winter">❄️冬</div>
+</div>
+
+<div class="device" id="device">
+  <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸ 暫停</button>
+
+  <div class="screen-frame">
+    <div class="screen" id="screen">
+
+      <!-- 狀態列 -->
+      <div class="status-bar">
+        <div class="s-icon" id="ageDisplay">AGE:0</div>
+        <div class="s-icon" id="seasonDisplay">🌸春</div>
+        <div class="s-icon" id="timeDisplay">00:00</div>
+      </div>
+
+      <!-- 天氣列 -->
+      <div class="weather-bar">
+        <div class="weather-txt" id="weatherText">🌤️ 晴天好心情</div>
+      </div>
+
+      <!-- 寵物畫布 -->
+      <div class="pet-area">
+        <canvas id="petCanvas" width="80" height="80"></canvas>
+      </div>
+
+      <!-- 訊息列 -->
+      <div class="msg-bar">
+        <div class="msg-txt" id="msgText">按 A 孵蛋！</div>
+      </div>
+
+      <!-- 狀態條 -->
+      <div class="stats-panel">
+        <div class="stat-row">
+          <div class="stat-lbl">🍖飢餓</div>
+          <div class="stat-bar"><div class="stat-fill" id="hungerBar" style="width:80%"></div></div>
+          <div class="stat-val" id="hungerVal">8</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-lbl">😊快樂</div>
+          <div class="stat-bar"><div class="stat-fill" id="happyBar" style="width:80%"></div></div>
+          <div class="stat-val" id="happyVal">8</div>
+        </div>
+      </div>
+
+      <!-- 選單覆蓋 -->
+      <div class="overlay" id="menuOverlay">
+        <div class="menu-title" id="menuTitle">選擇行動</div>
+        <div class="menu-items-wrap" id="menuItems"></div>
+      </div>
+
+      <!-- 暫停畫面 -->
+      <div class="pause-screen" id="pauseScreen">
+        <div class="pause-txt">⏸ 暫停中</div>
+        <div class="pause-txt" style="font-size:7px;color:var(--lcd-lt);">按 P 或點擊繼續</div>
+      </div>
+
+      <!-- 猜拳遊戲畫面 -->
+      <div class="game-screen" id="gameScreen">
+        <div class="game-title">✊ 猜拳遊戲 ✋</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:var(--lcd-md);">選一個！</div>
+        <div class="game-choices">
+          <button class="game-choice-btn" onclick="makeChoice(0)" title="石頭">✊</button>
+          <button class="game-choice-btn" onclick="makeChoice(1)" title="布">✋</button>
+          <button class="game-choice-btn" onclick="makeChoice(2)" title="剪刀">✌️</button>
+        </div>
+        <div class="game-result" id="gameResult"></div>
+        <button class="game-close-btn" id="gameCloseBtn" onclick="closeGameScreen()" style="display:none;">關閉</button>
+      </div>
+
+      <!-- 出去玩畫面 -->
+      <div class="outdoor-screen" id="outdoorScreen">
+        <div class="outdoor-title" id="outdoorTitle">🌳 出去玩 🌳</div>
+        <canvas id="outdoorCanvas" width="190" height="60" style="image-rendering:pixelated;border-radius:4px;"></canvas>
+        <div class="outdoor-result" id="outdoorResult"></div>
+        <button class="outdoor-close-btn" id="outdoorCloseBtn" onclick="closeOutdoorScreen()" style="display:none;">🏠 回家</button>
+      </div>
+
+      <!-- 死亡畫面 -->
+      <div class="death-screen" id="deathScreen">
+        <canvas id="ghostCanvas" width="50" height="50"></canvas>
+        <div class="death-txt" id="deathText"></div>
+      </div>
+
+      <!-- 孵蛋畫面 -->
+      <div class="hatch-screen" id="hatchScreen">
+        <canvas id="eggCanvas" width="60" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 三顆按鈕 -->
+  <div class="buttons-row">
+    <div class="btn-wrap">
+      <button class="btn btn-A" onclick="handleBtn('A')">🍖</button>
+      <div class="btn-lbl">MENU</div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn btn-B" onclick="handleBtn('B')">🔽</button>
+      <div class="btn-lbl">SELECT</div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn btn-C" onclick="handleBtn('C')">✅</button>
+      <div class="btn-lbl">OK</div>
+    </div>
+  </div>
+
+  <div class="save-indicator" id="saveIndicator">💾 已儲存</div>
+</div>
+
+<div class="version">V4 · 春夏秋冬換裝 · 出去玩 · P=暫停 · A/S/D=操作</div>
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════
+//  電子雞 V4 — 季節天氣、換裝、出去玩、完整選單
+// ════════════════════════════════════════════════════
+
+const canvas  = document.getElementById('petCanvas');
+const ctx     = canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+const gCanvas = document.getElementById('ghostCanvas');
+const gctx    = gCanvas.getContext('2d'); gctx.imageSmoothingEnabled=false;
+const eCanvas = document.getElementById('eggCanvas');
+const ectx    = eCanvas.getContext('2d'); ectx.imageSmoothingEnabled=false;
+const oCanvas = document.getElementById('outdoorCanvas');
+const octx    = oCanvas.getContext('2d'); octx.imageSmoothingEnabled=false;
+
+const C={bg:'#8bac0f',d0:'#0f380f',d1:'#306230',d2:'#8bac0f',d3:'#9bbc0f'};
+
+// ════════════════════════════════════════════════════
+//  🌸 季節 / 天氣系統
+// ════════════════════════════════════════════════════
+const SEASONS = ['spring','summer','autumn','winter'];
+
+const SEASON_NAMES  = {spring:'🌸春天', summer:'☀️夏天', autumn:'🍂秋天', winter:'❄️冬天'};
+const SEASON_TAG_TXT= {spring:'🌸春',   summer:'☀️夏',   autumn:'🍂秋',   winter:'❄️冬'};
+
+// 每季持續幾個遊戲天
+const SEASON_LEN = 7;
+
+// 每季天氣事件（mood=快樂變化, hunger=飢餓變化）
+const WEATHER_TABLE = {
+  spring:[
+    {icon:'🌸',txt:'櫻花飄落！',  mood:+3, hunger:-1},
+    {icon:'🌤️',txt:'陽光和煦',    mood:+2, hunger:-1},
+    {icon:'🌧️',txt:'春雨綿綿',    mood:0,  hunger:-1},
+    {icon:'🌈',txt:'雨後彩虹！',  mood:+2, hunger:0 },
+  ],
+  summer:[
+    {icon:'⛱️',txt:'海邊玩沙！',  mood:+3, hunger:-2},
+    {icon:'☀️',txt:'烈日炎炎',    mood:-1, hunger:-2},
+    {icon:'🍦',txt:'吃冰淇淋！',  mood:+3, hunger:-1},
+    {icon:'🌩️',txt:'雷陣雨',      mood:-1, hunger:-1},
+  ],
+  autumn:[
+    {icon:'🍂',txt:'落葉金黃！',  mood:+2, hunger:-1},
+    {icon:'🌰',txt:'採果實去！',  mood:+3, hunger:+1},
+    {icon:'🌬️',txt:'涼風習習',    mood:+1, hunger:-1},
+    {icon:'🌫️',txt:'起霧了',      mood:0,  hunger:0 },
+  ],
+  winter:[
+    {icon:'⛄',txt:'堆雪人！',    mood:+3, hunger:-2},
+    {icon:'❄️',txt:'大雪紛飛',    mood:-1, hunger:-2},
+    {icon:'🌨️',txt:'小雪飄飄',    mood:+1, hunger:-1},
+    {icon:'☕',txt:'窩在家喝茶',  mood:+2, hunger:0 },
+  ],
+};
+
+// 衣服主色 / 配件色
+const CLOTH_MAIN = {spring:'#f06292', summer:'#ffb300', autumn:'#8d6e63', winter:'#5c6bc0'};
+const CLOTH_ACC  = {spring:'#f8bbd0', summer:'#fff176', autumn:'#ffcc80', winter:'#c5cae9'};
+
+function getCurrentSeason(){
+  const cycle = (game.age||0) % (SEASON_LEN*4);
+  return SEASONS[Math.floor(cycle/SEASON_LEN)];
+}
+
+function getTodayWeather(season){
+  const arr = WEATHER_TABLE[season]||WEATHER_TABLE.spring;
+  return arr[(game.age||0) % arr.length];
+}
+
+function updateSeasonUI(){
+  const s = getCurrentSeason();
+  SEASONS.forEach(sn=>{
+    const el=document.getElementById('stag-'+sn);
+    if(el) el.className='season-tag season-'+sn+(sn===s?' active-season':'');
+  });
+  const sd=document.getElementById('seasonDisplay');
+  if(sd) sd.textContent=SEASON_TAG_TXT[s]||'🌸春';
+  const w=getTodayWeather(s);
+  const wt=document.getElementById('weatherText');
+  if(wt) wt.textContent=w.icon+' '+w.txt;
+}
+
+// ════════════════════════════════════════════════════
+//  🔊 Web Audio
+// ════════════════════════════════════════════════════
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function beep(freq,dur,type='square',vol=0.15){
+  try{
+    const ac=getAudio(),o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+    o.start(ac.currentTime);o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+const SFX={
+  feed:   ()=>{beep(523,.08);setTimeout(()=>beep(659,.12),80);},
+  outdoor:()=>{[440,523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.08,'sine',.15),i*70));},
+  play:   ()=>{beep(440,.06);setTimeout(()=>beep(550,.06),70);setTimeout(()=>beep(660,.1),140);},
+  win:    ()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.1,'sine',.2),i*80));},
+  lose:   ()=>{beep(330,.1);setTimeout(()=>beep(262,.2),120);},
+  evolve: ()=>{[262,330,392,523,659].forEach((f,i)=>setTimeout(()=>beep(f,.12,'sine',.2),i*100));},
+  sick:   ()=>{beep(220,.3,'sawtooth',.1);},
+  clean:  ()=>{beep(784,.06,'sine',.15);setTimeout(()=>beep(1047,.1,'sine',.15),70);},
+  btn:    ()=>{beep(660,.04,'square',.08);},
+  alert:  ()=>{[440,440,440].forEach((_,i)=>setTimeout(()=>beep(440,.08,'square',.12),i*150));},
+  death:  ()=>{[262,247,233,220].forEach((f,i)=>setTimeout(()=>beep(f,.25,'sawtooth',.1),i*200));},
+  born:   ()=>{[262,330,392,523].forEach((f,i)=>setTimeout(()=>beep(f,.1,'sine',.2),i*100));},
+  pause:  ()=>{beep(330,.06);setTimeout(()=>beep(262,.1),70);}
+};
+
+// ════════════════════════════════════════════════════
+//  🎨 Sprites
+// ════════════════════════════════════════════════════
+const SP={
+  egg:  [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[1,0,3,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0]],
+  baby: [[0,1,1,0],[1,0,0,1],[1,1,1,1],[0,1,1,0]],
+  child:[[0,1,1,1,0],[1,0,3,0,1],[1,0,0,0,1],[1,1,0,1,1],[0,1,1,1,0]],
+  teen: [[0,1,1,1,0],[1,0,3,0,1],[1,0,0,0,1],[0,1,0,1,0],[1,1,0,1,1],[1,0,0,0,1]],
+  adult:[[0,1,1,1,1,0],[1,0,3,3,0,1],[1,0,0,0,0,1],[1,1,0,0,1,1],[0,1,1,1,1,0],[0,1,0,0,1,0],[1,1,0,0,1,1]],
+  old:  [[0,1,1,1,0],[1,3,0,3,1],[1,0,1,0,1],[1,1,1,1,1],[0,1,0,1,0],[1,0,0,0,1]],
+  ghost:[[0,1,1,1,0],[1,3,0,3,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,1,0,1]],
+  food: [[0,1,0],[1,0,1],[0,1,0]],
+  note: [[0,1,1],[0,1,0],[1,1,0],[1,1,0]],
+  poop: [[0,1,0],[1,1,1],[1,1,1]],
+  heart:[[1,0,1],[1,0,1],[0,1,0]],
+};
+const PAL=[null,C.d0,C.d1,C.d3];
+const STAGE_SP={egg:SP.egg,baby:SP.baby,child:SP.child,teen:SP.teen,adult:SP.adult,old:SP.old};
+
+function dSprite(cx,sp,ox,oy,sz=4,col=null){
+  sp.forEach((row,y)=>row.forEach((v,x)=>{
+    if(!v)return;
+    cx.fillStyle=col||(PAL[v]||C.d0);
+    cx.fillRect((x+ox)*sz,(y+oy)*sz,sz,sz);
+  }));
+}
+
+// ════════════════════════════════════════════════════
+//  🎽 衣服繪製（疊加在角色畫布上）
+// ════════════════════════════════════════════════════
+function drawClothes(cx,stage,season,ox,oy,sz=4,alpha=1){
+  if(!season||season==='egg') return;
+  const mc=CLOTH_MAIN[season], ac=CLOTH_ACC[season];
+  const sp=STAGE_SP[stage]||SP.baby;
+  const sw=sp[0].length, sh=sp.length;
+  cx.save(); cx.globalAlpha=alpha;
+
+  switch(season){
+    case 'spring':
+      cx.fillStyle='#e91e63';
+      cx.fillRect((ox+Math.floor(sw/2))*sz, (oy-1)*sz, sz, sz);
+      cx.fillStyle=ac;
+      cx.fillRect((ox+Math.floor(sw/2)-1)*sz, (oy-1)*sz, sz, sz/2);
+      cx.fillRect((ox+Math.floor(sw/2)+1)*sz, (oy-1)*sz, sz, sz/2);
+      if(sh>3){
+        cx.fillStyle=mc; cx.globalAlpha=alpha*0.55;
+        cx.fillRect((ox+1)*sz,(oy+2)*sz,(sw-2)*sz,sz/2);
+        cx.globalAlpha=alpha;
+      }
+      break;
+
+    case 'summer':
+      cx.fillStyle=ac;
+      cx.fillRect((ox-1)*sz,(oy-1)*sz,(sw+2)*sz,sz/2);
+      cx.fillStyle=mc;
+      cx.fillRect((ox+1)*sz,(oy-2)*sz,(sw-2)*sz,sz/2);
+      cx.globalAlpha=alpha*0.35;
+      for(let r=2;r<sh-1;r+=2){
+        cx.fillStyle=mc;
+        cx.fillRect((ox)*sz,(oy+r)*sz,sw*sz,sz/2);
+      }
+      cx.globalAlpha=alpha;
+      break;
+
+    case 'autumn':
+      cx.fillStyle=mc;
+      cx.fillRect((ox)*sz,(oy+1)*sz,sw*sz,sz/2+1);
+      cx.fillStyle=ac;
+      cx.fillRect((ox+Math.floor(sw/2)-1)*sz,(oy+1)*sz,sz/2,sz/2+1);
+      cx.globalAlpha=alpha*0.3;
+      cx.fillStyle=mc;
+      cx.fillRect((ox)*sz,(oy+2)*sz,sz/2,Math.max(1,sh-3)*sz);
+      cx.fillRect((ox+sw-1)*sz,(oy+2)*sz,sz/2,Math.max(1,sh-3)*sz);
+      cx.globalAlpha=alpha;
+      break;
+
+    case 'winter':
+      cx.fillStyle=ac;
+      cx.fillRect((ox)*sz,(oy-1)*sz,sw*sz,sz/2);
+      cx.fillStyle=mc;
+      cx.fillRect((ox+1)*sz,(oy-2)*sz,(sw-2)*sz,sz/2);
+      cx.fillStyle='#fff';
+      cx.fillRect((ox+Math.floor(sw/2))*sz,(oy-3)*sz,sz/2,sz/2);
+      cx.globalAlpha=alpha*0.3;
+      cx.fillStyle=mc;
+      cx.fillRect((ox)*sz,(oy+1)*sz,sw*sz,Math.max(1,sh-2)*sz);
+      cx.globalAlpha=alpha;
+      break;
+  }
+  cx.restore();
+}
+
+// ════════════════════════════════════════════════════
+//  ⚙️ 難度設定
+// ════════════════════════════════════════════════════
+const DIFF_CFG={
+  easy:  {tickMs:4000,dayMs:360000,hungerRate:.05,happyRate:.03,sickRate:.002,poopRate:.005,dangerMax:15,label:'簡單'},
+  normal:{tickMs:3000,dayMs:300000,hungerRate:.08,happyRate:.05,sickRate:.004,poopRate:.008,dangerMax:10,label:'普通'},
+  hard:  {tickMs:2000,dayMs:180000,hungerRate:.15,happyRate:.10,sickRate:.010,poopRate:.015,dangerMax:6, label:'困難'}
+};
+let difficulty='normal', DIFF=DIFF_CFG.normal;
+
+function setDifficulty(d){
+  if(game.born&&!game.dead){showNotif('請重新開始才能換難度');return;}
+  difficulty=d; DIFF=DIFF_CFG[d];
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('diff-'+d).classList.add('active');
+  GAME_SEC=DIFF.tickMs; GAME_DAY=DIFF.dayMs;
+  showNotif('難度：'+DIFF.label); SFX.btn();
+}
+
+// ════════════════════════════════════════════════════
+//  💾 localStorage 存檔
+// ════════════════════════════════════════════════════
+const SAVE_KEY='tamagotchi_v4_save';
+
+function saveGame(){
+  if(!game.born||game.dead) return;
+  const data={stage:game.stage,age:game.age,hunger:game.hunger,
+    happy:game.happy,weight:game.weight,sick:game.sick,poop:game.poop,
+    sleeping:game.sleeping,born:game.born,dangerCount:game.dangerCount,
+    sickDanger:game.sickDanger,savedAt:Date.now(),difficulty};
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(data));flashSave();}catch(e){}
+}
+
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY); if(!raw) return false;
+    const data=JSON.parse(raw);
+    const elapsed=Math.min(Date.now()-data.savedAt,3600000);
+    const offDays=Math.floor(elapsed/DIFF_CFG[data.difficulty||'normal'].dayMs);
+    game.stage=data.stage||'baby'; game.age=data.age||0;
+    game.hunger=Math.max(0,data.hunger-Math.floor(offDays*2));
+    game.happy =Math.max(0,data.happy -Math.floor(offDays*1.5));
+    game.weight=data.weight||5; game.sick=data.sick||false;
+    game.poop=Math.min(3,(data.poop||0)+Math.floor(offDays));
+    game.sleeping=data.sleeping||false; game.born=data.born||false;
+    game.dangerCount=0; game.sickDanger=0;
+    if(data.difficulty) setDifficulty(data.difficulty);
+    if(offDays>0) showNotif(`離開了${offDays}天，趕快照顧我！`);
+    return true;
+  }catch(e){return false;}
+}
+
+function clearSave(){localStorage.removeItem(SAVE_KEY);}
+function flashSave(){
+  const el=document.getElementById('saveIndicator');
+  el.classList.add('show'); clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),1500);
+}
+
+// ════════════════════════════════════════════════════
+//  🎮 遊戲狀態
+// ════════════════════════════════════════════════════
+const STAGE_NAMES={egg:'蛋',baby:'嬰兒',child:'幼兒',teen:'青少年',adult:'成年',old:'老年'};
+
+let game={};
+let paused=false, animTick=0, petOffY=0, lastTime=0;
+let gameSecTimer=0, gameDayTimer=0, autoSaveTimer=0;
+let GAME_SEC=DIFF.tickMs, GAME_DAY=DIFF.dayMs;
+const AUTO_SAVE=30000;
+
+function initGame(fromLoad=false){
+  if(!fromLoad){
+    game={stage:'egg',age:0,hunger:8,happy:8,weight:5,sick:false,poop:0,
+      sleeping:false,dead:false,born:false,effect:null,effectTimer:0,
+      menuOpen:false,menuIdx:0,menuItems:[],hatchCrack:0,hatchTimer:0,
+      dangerCount:0,sickDanger:0};
+  }
+  paused=false; gameSecTimer=0; gameDayTimer=0; autoSaveTimer=0;
+  ['deathScreen','hatchScreen','menuOverlay','pauseScreen','outdoorScreen','gameScreen']
+    .forEach(id=>document.getElementById(id).classList.remove('active'));
+  const pb=document.getElementById('pauseBtn');
+  pb.classList.remove('paused'); pb.textContent='⏸ 暫停';
+  renderStats(); updateLabels(); updateSeasonUI();
+  showMessage(game.born?'歡迎回來！':'按 A 孵蛋！');
+  drawPet();
+}
+
+// ════════════════════════════════════════════════════
+//  ⏸ 暫停
+// ════════════════════════════════════════════════════
+function togglePause(){
+  if(game.dead||!game.born) return;
+  paused=!paused; SFX.pause();
+  const btn=document.getElementById('pauseBtn');
+  const sc=document.getElementById('pauseScreen');
+  if(paused){
+    sc.classList.add('active'); btn.classList.add('paused'); btn.textContent='▶ 繼續';
+    showNotif('⏸ 遊戲暫停'); saveGame();
+  } else {
+    sc.classList.remove('active'); btn.classList.remove('paused'); btn.textContent='⏸ 暫停';
+    showNotif('▶ 繼續遊戲'); lastTime=0;
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  📋 選單系統（睡覺時只顯示「叫醒牠」）
+// ════════════════════════════════════════════════════
+const MENU_ALL=[
+  {icon:'🍖',label:'餵食',   action:'feed'},
+  {icon:'🌳',label:'出去玩', action:'outdoor'},
+  {icon:'🎮',label:'猜拳',   action:'game'},
+  {icon:'💡',label:'電燈',   action:'light'},
+  {icon:'🩺',label:'醫療',   action:'medicine'},
+  {icon:'🚿',label:'清潔',   action:'clean'},
+  {icon:'📊',label:'狀態',   action:'status'},
+  {icon:'💾',label:'存檔',   action:'save'},
+];
+const MENU_SLEEP=[
+  {icon:'💡',label:'叫醒牠', action:'light'},
+];
+
+function openMenu(){
+  if(!game.born||game.dead||paused) return;
+  game.menuOpen=true; game.menuIdx=0;
+  game.menuItems=game.sleeping ? MENU_SLEEP : MENU_ALL;
+  const title=document.getElementById('menuTitle');
+  if(title) title.textContent=game.sleeping?'💤 牠在睡覺':'選擇行動';
+  renderMenu();
+  document.getElementById('menuOverlay').classList.add('active');
+  SFX.btn();
+}
+function closeMenu(){
+  game.menuOpen=false;
+  document.getElementById('menuOverlay').classList.remove('active');
+}
+function renderMenu(){
+  const el=document.getElementById('menuItems'); el.innerHTML='';
+  game.menuItems.forEach((item,i)=>{
+    const d=document.createElement('div');
+    d.className='menu-item'+(i===game.menuIdx?' sel':'');
+    d.innerHTML=`<span class="menu-cur">${i===game.menuIdx?'▶':' '}</span>${item.icon} ${item.label}`;
+    el.appendChild(d);
+  });
+}
+function menuMove(){game.menuIdx=(game.menuIdx+1)%game.menuItems.length;renderMenu();SFX.btn();}
+function menuConfirm(){
+  const action=game.menuItems[game.menuIdx].action;
+  closeMenu();
+  setTimeout(()=>executeAction(action),50);
+}
+
+// ════════════════════════════════════════════════════
+//  🎯 動作執行
+// ════════════════════════════════════════════════════
+function executeAction(action){
+  if(game.dead||paused) return;
+  switch(action){
+
+    case 'feed':
+      if(game.hunger>=10){showNotif('已經吃飽了！🍖');SFX.btn();return;}
+      game.hunger=Math.min(10,game.hunger+3); game.weight+=1; game.dangerCount=0;
+      playFX('food'); SFX.feed();
+      showMsg('好好吃！謝謝！',2000); showNotif('美味！吃飽了 😊');
+      break;
+
+    case 'light':
+      game.sleeping=!game.sleeping; SFX.btn();
+      if(game.sleeping){showMsg('ZzZz...晚安！');showNotif('電子雞睡著了 💤');}
+      else             {showMsg('早安！☀️',2000);showNotif('電子雞醒來了！☀️');}
+      break;
+
+    case 'outdoor':
+      if(game.sleeping){showNotif('先叫醒牠再出去！');SFX.btn();return;}
+      openOutdoorScreen(); break;
+
+    case 'game':
+      if(game.sleeping){showNotif('先叫醒牠！');SFX.btn();return;}
+      if(game.happy>=10){showNotif('已經很開心了！😊');SFX.btn();return;}
+      openGameScreen(); break;
+
+    case 'medicine':
+      if(!game.sick){showNotif('身體很健康！💪');showMsg('我很健康喔！',2000);SFX.btn();return;}
+      game.sick=false; game.sickDanger=0; game.hunger=Math.min(10,game.hunger+2);
+      playFX('heart'); SFX.clean();
+      showMsg('謝謝！我好多了！',2000); showNotif('病好了！康復 💊');
+      break;
+
+    case 'clean':
+      if(game.poop===0){showNotif('已經很乾淨了！✨');showMsg('我很乾淨喔！',2000);SFX.btn();return;}
+      game.poop=0; game.happy=Math.min(10,game.happy+1);
+      playFX('heart'); SFX.clean();
+      showMsg('好清爽！謝謝！',2000); showNotif('清潔完畢！✨');
+      break;
+
+    case 'status':
+      showStatus(); SFX.btn(); break;
+
+    case 'save':
+      saveGame(); SFX.clean();
+      showNotif('💾 存檔完成！'); showMsg('已儲存！',2000);
+      break;
+  }
+  renderStats(); drawPet();
+}
+
+// ════════════════════════════════════════════════════
+//  🌳 出去玩（天氣影響結果）
+// ════════════════════════════════════════════════════
+let outdoorAnimRunning=false;
+
+function openOutdoorScreen(){
+  const season=getCurrentSeason();
+  const w=getTodayWeather(season);
+  document.getElementById('outdoorTitle').textContent=w.icon+' 出去玩 '+w.icon;
+  document.getElementById('outdoorResult').textContent='';
+  document.getElementById('outdoorCloseBtn').style.display='none';
+  document.getElementById('outdoorScreen').classList.add('active');
+  SFX.outdoor();
+  drawOutdoorScene(season,w);
+  setTimeout(()=>resolveOutdoor(season,w),1200);
+}
+
+function drawOutdoorScene(season,w){
+  const W=190,H=60;
+  octx.clearRect(0,0,W,H);
+  const skyC={spring:'#b3e5fc',summer:'#fff9c4',autumn:'#ffe0b2',winter:'#e3f2fd'};
+  octx.fillStyle=skyC[season]||'#b3e5fc'; octx.fillRect(0,0,W,H*0.6);
+  const gndC={spring:'#c8e6c9',summer:'#f9a825',autumn:'#795548',winter:'#e0e0e0'};
+  octx.fillStyle=gndC[season]||'#c8e6c9'; octx.fillRect(0,H*0.6,W,H);
+  if(season==='spring'){
+    [[22,30],[65,28],[105,31],[148,29]].forEach(([x,y])=>{
+      octx.fillStyle='#e91e63';octx.fillRect(x,y,5,5);
+      octx.fillStyle='#f8bbd0';octx.fillRect(x-5,y+2,5,4);octx.fillRect(x+5,y+2,5,4);
+    });
+    octx.fillStyle='#388e3c';octx.fillRect(160,14,16,20);
+    octx.fillStyle='#5d4037';octx.fillRect(165,34,6,12);
+  } else if(season==='summer'){
+    octx.fillStyle='#fdd835';
+    octx.beginPath();octx.arc(162,14,11,0,Math.PI*2);octx.fill();
+    octx.strokeStyle='#f9a825';octx.lineWidth=2;
+    for(let a=0;a<8;a++){const r=a*Math.PI/4;octx.beginPath();octx.moveTo(162+14*Math.cos(r),14+14*Math.sin(r));octx.lineTo(162+20*Math.cos(r),14+20*Math.sin(r));octx.stroke();}
+    octx.fillStyle='#4fc3f7';octx.fillRect(0,H*0.6-4,W,8);
+  } else if(season==='autumn'){
+    [[18,24],[55,20],[95,27],[138,22],[170,26]].forEach(([x,y])=>{
+      octx.fillStyle='#ff7043';octx.fillRect(x,y,8,6);
+      octx.fillStyle='#ffa726';octx.fillRect(x+3,y+3,6,4);
+    });
+    octx.fillStyle='#5d4037';octx.fillRect(155,8,6,40);
+    octx.fillStyle='#8d6e63';octx.fillRect(145,8,26,8);octx.fillRect(148,16,20,8);
+  } else if(season==='winter'){
+    for(let i=0;i<10;i++){
+      octx.fillStyle='rgba(255,255,255,0.9)';
+      octx.fillRect(Math.sin(i*137)*80+80,Math.sin(i*59)*18+12,3,3);
+    }
+    octx.fillStyle='#bdbdbd';octx.fillRect(0,H*0.6,W,4);
+  }
+
+  const sp=STAGE_SP[game.stage]||SP.baby;
+  const sw=sp[0].length,sh2=sp.length;
+  const sz=4;
+  const px=4, py=Math.floor(H*0.6/sz-sh2)-1;
+  dSprite(octx,sp,px,py,sz);
+  drawClothes(octx,game.stage,season,px,py,sz,0.85);
+}
+
+function resolveOutdoor(season,w){
+  game.happy =Math.max(0,Math.min(10,game.happy +w.mood));
+  game.hunger=Math.max(0,Math.min(10,game.hunger+w.hunger));
+  playFX('heart');
+  const lines=[];
+  lines.push(w.icon+' '+w.txt);
+  lines.push(w.mood>0?'快樂 +'+w.mood+' 😊':w.mood<0?'有點不開心 '+w.mood:'心情平平...');
+  if(w.hunger<0) lines.push('肚子有點餓了');
+  else if(w.hunger>0) lines.push('找到好吃的！');
+  document.getElementById('outdoorResult').textContent=lines.join('\n');
+  document.getElementById('outdoorCloseBtn').style.display='block';
+  if(w.mood>=2) SFX.win();
+  else if(w.mood<0) SFX.lose();
+  showNotif(SEASON_NAMES[season]+' '+w.icon+w.txt);
+  renderStats();
+}
+
+function closeOutdoorScreen(){
+  document.getElementById('outdoorScreen').classList.remove('active');
+  renderStats(); drawPet();
+}
+
+// ════════════════════════════════════════════════════
+//  🎮 猜拳遊戲
+// ════════════════════════════════════════════════════
+function openGameScreen(){
+  document.getElementById('gameScreen').classList.add('active');
+  document.getElementById('gameResult').textContent='';
+  document.getElementById('gameCloseBtn').style.display='none';
+}
+function closeGameScreen(){
+  document.getElementById('gameScreen').classList.remove('active');
+  renderStats(); drawPet();
+}
+function makeChoice(playerIdx){
+  const emojis=['✊','✋','✌️'];
+  const petIdx=Math.floor(Math.random()*3);
+  const diff=(playerIdx-petIdx+3)%3;
+  let txt,won;
+  if(diff===0){txt=`你:${emojis[playerIdx]} 雞:${emojis[petIdx]}\n平局！再來`;won=null;}
+  else if(diff===1){txt=`你:${emojis[playerIdx]} 雞:${emojis[petIdx]}\n你贏了！🎉`;game.happy=Math.min(10,game.happy+2);won=true;}
+  else{txt=`你:${emojis[playerIdx]} 雞:${emojis[petIdx]}\n電子雞贏了`;game.happy=Math.max(0,game.happy-1);won=false;}
+  document.getElementById('gameResult').textContent=txt;
+  document.getElementById('gameCloseBtn').style.display='block';
+  if(won===true){SFX.win();playFX('heart');}
+  else if(won===false){SFX.lose();playFX('note');}
+  else SFX.btn();
+}
+
+// ════════════════════════════════════════════════════
+//  🥚 孵蛋
+// ════════════════════════════════════════════════════
+function startHatch(){
+  if(game.born||game.stage!=='egg') return;
+  document.getElementById('hatchScreen').classList.add('active');
+  showMessage('正在孵化...');
+  game.hatchCrack=0; game.hatchTimer=0;
+  SFX.born(); animHatch();
+}
+function animHatch(){
+  ectx.clearRect(0,0,60,60); ectx.fillStyle=C.bg; ectx.fillRect(0,0,60,60);
+  dSprite(ectx,SP.egg,2,1,7);
+  ectx.strokeStyle=C.d0; ectx.lineWidth=2;
+  if(game.hatchCrack>=1){ectx.beginPath();ectx.moveTo(28,18);ectx.lineTo(33,28);ectx.stroke();}
+  if(game.hatchCrack>=2){ectx.beginPath();ectx.moveTo(20,28);ectx.lineTo(31,34);ectx.stroke();}
+  if(game.hatchCrack>=3){ectx.beginPath();ectx.moveTo(33,28);ectx.lineTo(42,37);ectx.stroke();}
+  game.hatchTimer++;
+  if(game.hatchTimer%22===0) game.hatchCrack++;
+  if(game.hatchCrack<4) requestAnimationFrame(animHatch);
+  else setTimeout(()=>{
+    document.getElementById('hatchScreen').classList.remove('active');
+    game.born=true; game.stage='baby';
+    showMsg('孵化成功！你好！',2500); showNotif('🐣 嬰兒電子雞誕生了！');
+    SFX.evolve(); updateLabels(); updateSeasonUI(); drawPet();
+    setTimeout(saveGame,1000);
+  },300);
+}
+
+// ════════════════════════════════════════════════════
+//  ✨ 進化
+// ════════════════════════════════════════════════════
+function checkEvolution(){
+  if(!game.born) return;
+  const order=['baby','child','teen','adult','old'];
+  const next =['child','teen','adult','old',null];
+  const thr  ={baby:1,child:3,teen:7,adult:14};
+  const idx=order.indexOf(game.stage);
+  if(idx<0||!next[idx]) return;
+  if(thr[game.stage]!==undefined && game.age>=thr[game.stage]){
+    game.stage=next[idx];
+    const name=STAGE_NAMES[game.stage];
+    const sn=SEASON_NAMES[getCurrentSeason()];
+    showNotif(`✨ 進化為${name}！穿上${sn}新裝！`);
+    showMsg(`恭喜！我是${name}！`,2500);
+    playFX('heart'); SFX.evolve(); updateLabels(); renderStats(); saveGame();
+  }
+}
+
+function playFX(type){game.effect=type;game.effectTimer=0;}
+
+// ════════════════════════════════════════════════════
+//  🖼 繪製
+// ════════════════════════════════════════════════════
+function drawPet(){
+  ctx.clearRect(0,0,80,80); ctx.fillStyle=C.bg; ctx.fillRect(0,0,80,80);
+  if(game.dead||!game.born) return;
+  if(game.sleeping){drawSleepPet();return;}
+
+  const sp=STAGE_SP[game.stage]||SP.baby;
+  const sw=sp[0].length,sh=sp.length;
+  const ox=Math.floor((20-sw)/2);
+  const oy=Math.floor((20-sh)/2)+Math.round(petOffY);
+  const sx=game.sick?Math.round(Math.sin(animTick*.5)*1.5):0;
+
+  dSprite(ctx,sp,ox+sx,oy,4);
+  drawClothes(ctx,game.stage,getCurrentSeason(),ox+sx,oy,4,1);
+
+  if(game.effect&&game.effectTimer<30){
+    ctx.globalAlpha=1-game.effectTimer/30;
+    const fy=Math.max(0,12-Math.floor(game.effectTimer/3));
+    if(game.effect==='food')  dSprite(ctx,SP.food,16,fy,4);
+    else if(game.effect==='note')  dSprite(ctx,SP.note,14,fy,4);
+    else if(game.effect==='heart') dSprite(ctx,SP.heart,15,fy,4);
+    ctx.globalAlpha=1;
+    game.effectTimer++;
+    if(game.effectTimer>=30) game.effect=null;
+  }
+  for(let i=0;i<Math.min(game.poop,3);i++) dSprite(ctx,SP.poop,15+i*4,16,4);
+  if(game.sick){ctx.fillStyle=C.d0;ctx.font='bold 13px monospace';ctx.fillText('✕',55,18);}
+}
+
+function drawSleepPet(){
+  const sp=STAGE_SP[game.stage]||SP.baby;
+  const ox=Math.floor((20-sp[0].length)/2),oy=Math.floor((20-sp.length)/2);
+  dSprite(ctx,sp,ox,oy,4);
+  drawClothes(ctx,game.stage,getCurrentSeason(),ox,oy,4,0.5);
+  ctx.fillStyle=C.d1;ctx.font='10px monospace';
+  ctx.fillText('z',56,22);ctx.fillText('z',62,14);
+}
+
+function drawGhost(){
+  gctx.clearRect(0,0,50,50);gctx.fillStyle=C.bg;gctx.fillRect(0,0,50,50);
+  if(Math.floor(Date.now()/500)%2) dSprite(gctx,SP.ghost,2,2,8);
+}
+
+// ════════════════════════════════════════════════════
+//  📊 UI
+// ════════════════════════════════════════════════════
+function renderStats(){
+  const h=game.hunger/10*100,hp=game.happy/10*100;
+  document.getElementById('hungerBar').style.width=h+'%';
+  document.getElementById('happyBar').style.width=hp+'%';
+  document.getElementById('hungerVal').textContent=game.hunger;
+  document.getElementById('happyVal').textContent=game.happy;
+  document.getElementById('hungerBar').className='stat-fill'+(game.hunger<=3?' warn':'');
+  document.getElementById('happyBar').className='stat-fill'+(game.happy<=3?' warn':'');
+}
+function updateLabels(){document.getElementById('ageDisplay').textContent='AGE:'+game.age;}
+function updateClock(){
+  const n=new Date();
+  document.getElementById('timeDisplay').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+
+let msgTimer=null;
+function showMsg(msg,dur=0){
+  document.getElementById('msgText').textContent=msg;
+  clearTimeout(msgTimer);
+  if(dur>0) msgTimer=setTimeout(()=>showMessage(getDefaultMsg()),dur);
+}
+function showMessage(msg){document.getElementById('msgText').textContent=msg;}
+function showNotif(msg){
+  const el=document.getElementById('notif');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+function showStatus(){
+  const s=STAGE_NAMES[game.stage],sn=SEASON_NAMES[getCurrentSeason()];
+  showMsg(`${s}・${game.age}天\n${sn}`,3000);
+}
+function getDefaultMsg(){
+  if(!game.born) return '按 A 孵蛋！';
+  if(game.dead)  return '電子雞離開了...';
+  if(paused)     return '⏸ 遊戲暫停中';
+  if(game.sleeping) return 'ZzZz... 好夢！';
+  if(game.sick)  return '我不舒服...按A>醫療';
+  if(game.hunger<=2) return '我好餓！快餵我！';
+  if(game.happy<=2)  return '好無聊...陪我玩！';
+  if(game.poop>=2)   return '好臭...幫我清潔！';
+  const s=getCurrentSeason();
+  const sm={
+    spring:['春天好美！🌸','帶我去賞花！','花粉好多...'],
+    summer:['好熱喔！☀️','想去海邊！','給我冰淇淋！🍦'],
+    autumn:['落葉好漂亮🍂','秋天好涼爽','帶我去採果！'],
+    winter:['好冷...抱我😰','想堆雪人！⛄','窩被窩好舒服'],
+  };
+  const arr=[...['我很開心！♥','謝謝照顧我！',...(sm[s]||[])]];
+  return arr[Math.floor(Date.now()/5000)%arr.length];
+}
+
+// ════════════════════════════════════════════════════
+//  ⌨️ 按鍵
+// ════════════════════════════════════════════════════
+function handleBtn(btn){
+  if(navigator.vibrate) navigator.vibrate(30);
+  const dev=document.getElementById('device');
+  dev.classList.remove('shake');void dev.offsetWidth;dev.classList.add('shake');
+
+  if(game.dead){if(btn==='A'||btn==='C'){clearInterval(game._ghostTimer);clearSave();initGame();}return;}
+  if(!game.born){if(btn==='A'||btn==='C') startHatch();return;}
+
+  if(document.getElementById('outdoorScreen').classList.contains('active')){
+    if(btn==='A'||btn==='C') closeOutdoorScreen(); return;
+  }
+  if(document.getElementById('gameScreen').classList.contains('active')){
+    if(btn==='C') closeGameScreen(); return;
+  }
+  if(paused){togglePause();return;}
+  if(game.menuOpen){
+    if(btn==='B') menuMove();
+    else if(btn==='C'||btn==='A') menuConfirm();
+    return;
+  }
+  if(btn==='A') openMenu();
+  else if(btn==='B') executeAction('feed');
+  else if(btn==='C') executeAction('clean');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft') handleBtn('A');
+  if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') handleBtn('B');
+  if(e.key==='d'||e.key==='D'||e.key==='ArrowRight') handleBtn('C');
+  if(e.key==='p'||e.key==='P') togglePause();
+  if(e.key==='Escape'){if(game.menuOpen) closeMenu();}
+});
+
+// ════════════════════════════════════════════════════
+//  ⏱ 主循環
+// ════════════════════════════════════════════════════
+let lastSeasonIdx=-1;
+
+function gameTick(){
+  if(paused||game.sleeping) return;
+  if(Math.random()<DIFF.hungerRate){game.hunger=Math.max(0,game.hunger-1);renderStats();}
+  if(Math.random()<DIFF.happyRate){game.happy=Math.max(0,game.happy-1);renderStats();}
+  if(!game.sick&&Math.random()<DIFF.sickRate){
+    game.sick=true;SFX.sick();showNotif('😷 電子雞生病了！快給藥！');showMsg('我不舒服...',3000);
+    const d=document.getElementById('device');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');
+  }
+  if(game.poop<3&&Math.random()<DIFF.poopRate){game.poop++;SFX.btn();showNotif('💩 電子雞大便了！');}
+  if(game.hunger<=0){
+    game.dangerCount=(game.dangerCount||0)+1;
+    if(game.dangerCount===3){SFX.alert();showNotif('⚠️ 快餓死了！快餵食！');}
+    if(game.dangerCount>=DIFF.dangerMax){showDeath();return;}
+  }else{game.dangerCount=0;}
+  if(game.sick&&game.happy<=0){
+    game.sickDanger=(game.sickDanger||0)+1;
+    if(game.sickDanger>=Math.floor(DIFF.dangerMax*.8)){showDeath();return;}
+  }else{game.sickDanger=0;}
+}
+
+function gameDayTick(){
+  if(paused) return;
+  game.age++;game.weight+=0.5;updateLabels();
+  const si=SEASONS.indexOf(getCurrentSeason());
+  if(si!==lastSeasonIdx){
+    lastSeasonIdx=si;
+    showNotif('🗓️ 進入'+SEASON_NAMES[SEASONS[si]]+'！記得換裝！');
+    updateSeasonUI();
+  }
+  checkEvolution();
+  if(game.stage==='old'&&game.age>35&&Math.random()<0.12){
+    showNotif('👴 電子雞壽終正寢了...');showDeath();
+  }
+  saveGame();
+}
+
+function showDeath(){
+  game.dead=true;SFX.death();
+  document.getElementById('deathScreen').classList.add('active');
+  document.getElementById('deathText').textContent=
+    `電子雞離開了\n\n年齡: ${game.age}天\n體重: ${Math.floor(game.weight)}g\n\n按 A 重新開始`;
+  showNotif('💀 電子雞離開了... 享年'+game.age+'天');
+  game._ghostTimer=setInterval(drawGhost,500);
+}
+
+function gameLoop(ts){
+  if(lastTime===0) lastTime=ts;
+  const dt=ts-lastTime; lastTime=ts;
+  animTick++;
+  if(game.born&&!game.dead&&!paused) petOffY=Math.sin(animTick*.05)*1.5;
+  if(!paused&&game.born&&!game.dead){
+    gameSecTimer+=dt;gameDayTimer+=dt;autoSaveTimer+=dt;
+    if(gameSecTimer>=DIFF.tickMs){gameSecTimer=0;gameTick();}
+    if(gameDayTimer>=DIFF.dayMs){gameDayTimer=0;gameDayTick();}
+    if(autoSaveTimer>=AUTO_SAVE){autoSaveTimer=0;saveGame();}
+  }
+  updateClock();
+  updateSeasonUI();
+  if(!game.menuOpen&&!paused) showMessage(getDefaultMsg());
+  drawPet();
+  if(game.dead) drawGhost();
+  requestAnimationFrame(gameLoop);
+}
+
+// ════════════════════════════════════════════════════
+//  🚀 啟動
+// ════════════════════════════════════════════════════
+initGame();
+if(loadGame()){initGame(true);if(game.born)showNotif('💾 存檔讀取！歡迎回來！');}
+requestAnimationFrame(gameLoop);
+window.addEventListener('beforeunload',()=>{if(game.born&&!game.dead)saveGame();});
+window.addEventListener('visibilitychange',()=>{if(document.hidden&&game.born&&!game.dead)saveGame();});
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+</script>
+</body>
+</html>
